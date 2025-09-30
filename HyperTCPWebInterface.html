@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperTCP Protocol Interface</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-connected {
+            background-color: var(--success-color);
+        }
+        
+        .status-disconnected {
+            background-color: var(--danger-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .sensor-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .sensor-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .sensor-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: var(--primary-color);
+        }
+        
+        .sensor-label {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .log-container {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .log-timestamp {
+            color: #95a5a6;
+            margin-right: 10px;
+        }
+        
+        .log-info {
+            color: #3498db;
+        }
+        
+        .log-success {
+            color: #2ecc71;
+        }
+        
+        .log-warning {
+            color: #f1c40f;
+        }
+        
+        .log-error {
+            color: #e74c3c;
+        }
+        
+        .device-list {
+            margin-top: 20px;
+        }
+        
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .device-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .device-info {
+            flex-grow: 1;
+        }
+        
+        .device-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .device-status {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .device-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+            margin-top: 30px;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+        }
+        
+        .status-text {
+            margin-left: 10px;
+            font-weight: 500;
+        }
+        
+        .protocol-info {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HyperTCP Protocol Interface</h1>
+            <p class="subtitle">Real-time device monitoring and control system</p>
+        </header>
+        
+        <div class="protocol-info">
+            <h3>HyperTCP Protocol Information</h3>
+            <p>This interface communicates with ESP32 devices using the HyperTCP protocol - a lightweight, real-time TCP-based protocol for hardware-to-server and server-to-web communication.</p>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Connection Settings</h2>
+                    <div>
+                        <span class="status-indicator status-disconnected" id="connectionStatusIndicator"></span>
+                        <span id="connectionStatusText">Disconnected</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="serverAddress">Server Address</label>
+                    <input type="text" id="serverAddress" value="192.168.31.85" placeholder="Enter server IP">
+                </div>
+                
+                <div class="form-group">
+                    <label for="serverPort">Port</label>
+                    <input type="number" id="serverPort" value="8081" placeholder="Enter port">
+                </div>
+                
+                <div class="form-group">
+                    <label for="authToken">Authentication Token</label>
+                    <input type="password" id="authToken" value="your_auth_token_here" placeholder="Enter auth token">
+                </div>
+                
+                <div class="form-group">
+                    <label for="deviceId">Device ID</label>
+                    <input type="text" id="deviceId" value="web_client_001" placeholder="Enter device ID">
+                </div>
+                
+                <button id="connectBtn" class="btn btn-block">Connect to Server</button>
+                <button id="disconnectBtn" class="btn btn-danger btn-block" style="margin-top: 10px; display: none;">Disconnect</button>
+                
+                <div class="connection-status">
+                    <span class="status-indicator status-disconnected" id="serverStatusIndicator"></span>
+                    <span class="status-text" id="serverStatusText">Server: Disconnected</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Device Control</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="targetDevice">Target Device</label>
+                    <select id="targetDevice">
+                        <option value="esp32_sensor_001">ESP32 Sensor Device 1</option>
+                        <option value="server">Server</option>
+                        <option value="broadcast">Broadcast to All Devices</option>
+                    </select>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="btn btn-success" id="ledOnBtn">LED ON</button>
+                    <button class="btn btn-danger" id="ledOffBtn">LED OFF</button>
+                    <button class="btn btn-warning" id="ledToggleBtn">Toggle LED</button>
+                    <button class="btn" id="ledBlinkBtn">Blink LED</button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="blinkCount">Blink Count</label>
+                    <input type="number" id="blinkCount" value="3" min="1" max="10">
+                </div>
+                
+                <div class="form-group">
+                    <label for="customCommand">Custom Command</label>
+                    <input type="text" id="customCommand" placeholder='{"command": "custom", "param": "value"}'>
+                </div>
+                
+                <button class="btn btn-block" id="sendCommandBtn">Send Custom Command</button>
+            </div>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Sensor Data</h2>
+                </div>
+                
+                <div class="sensor-data">
+                    <div class="sensor-card">
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value" id="temperatureValue">--</div>
+                        <div class="sensor-unit">°C</div>
+                    </div>
+                    
+                    <div class="sensor-card">
+                        <div class="sensor-label">Humidity</div>
+                        <div class="sensor-value" id="humidityValue">--</div>
+                        <div class="sensor-unit">%</div>
+                    </div>
+                    
+                    <div class="sensor-card">
+                        <div class="sensor-label">Light Level</div>
+                        <div class="sensor-value" id="lightValue">--</div>
+                        <div class="sensor-unit">lux</div>
+                    </div>
+                    
+                    <div class="sensor-card">
+                        <div class="sensor-label">Device Status</div>
+                        <div class="sensor-value" id="deviceStatus">Offline</div>
+                        <div class="sensor-unit"></div>
+                    </div>
+                </div>
+                
+                <div class="device-list">
+                    <h3>Connected Devices</h3>
+                    <div id="devicesContainer">
+                        <!-- Devices will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Communication Log</h2>
+                </div>
+                
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry">
+                        <span class="log-timestamp">[00:00:00]</span>
+                        <span class="log-info">System initialized. Ready to connect.</span>
+                    </div>
+                </div>
+                
+                <button class="btn btn-danger" id="clearLogBtn" style="margin-top: 15px;">Clear Log</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>HyperTCP Protocol Interface &copy; 2025 | Real-time Device Communication System</p>
+        </footer>
+    </div>
+
+    <script>
+        // Protocol definitions (HyperTCP)
+        const HYPER_TCP_CMD_RESPONSE      = 0;
+        const HYPER_TCP_CMD_PING          = 6;
+        const HYPER_TCP_CMD_LOGIN         = 29;
+        const HYPER_TCP_CMD_JSON_MESSAGE  = 30;
+        const HYPER_TCP_CMD_REDIRECT      = 41;
+        const HYPER_TCP_CMD_BROADCAST     = 50;
+
+        const HYPER_TCP_STATUS_SUCCESS           = 200;
+        const HYPER_TCP_STATUS_INVALID_TOKEN     = 9;
+        const HYPER_TCP_STATUS_NOT_AUTHENTICATED = 5;
+        const HYPER_TCP_STATUS_TIMEOUT           = 16;
+
+        // DOM Elements
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const serverAddress = document.getElementById('serverAddress');
+        const serverPort = document.getElementById('serverPort');
+        const authToken = document.getElementById('authToken');
+        const deviceId = document.getElementById('deviceId');
+        const connectionStatusIndicator = document.getElementById('connectionStatusIndicator');
+        const connectionStatusText = document.getElementById('connectionStatusText');
+        const serverStatusIndicator = document.getElementById('serverStatusIndicator');
+        const serverStatusText = document.getElementById('serverStatusText');
+        const logContainer = document.getElementById('logContainer');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        const targetDevice = document.getElementById('targetDevice');
+        const ledOnBtn = document.getElementById('ledOnBtn');
+        const ledOffBtn = document.getElementById('ledOffBtn');
+        const ledToggleBtn = document.getElementById('ledToggleBtn');
+        const ledBlinkBtn = document.getElementById('ledBlinkBtn');
+        const blinkCount = document.getElementById('blinkCount');
+        const customCommand = document.getElementById('customCommand');
+        const sendCommandBtn = document.getElementById('sendCommandBtn');
+        const temperatureValue = document.getElementById('temperatureValue');
+        const humidityValue = document.getElementById('humidityValue');
+        const lightValue = document.getElementById('lightValue');
+        const deviceStatus = document.getElementById('deviceStatus');
+        const devicesContainer = document.getElementById('devicesContainer');
+
+        // State variables
+        let isConnected = false;
+        let socket = null;
+        let messageCounter = 1;
+        let connectedDevices = new Map();
+        let pingInterval = null;
+        let reconnectTimeout = null;
+
+        // HyperTCP Header class
+        class HyperTCPHeader {
+            constructor(type = 0, msgId = 0, length = 0) {
+                this.type = type;
+                this.msgId = msgId;
+                this.length = length;
+            }
+            
+            pack() {
+                const buffer = new ArrayBuffer(5);
+                const view = new DataView(buffer);
+                view.setUint8(0, this.type);
+                view.setUint16(1, this.msgId, false); // Big endian
+                view.setUint16(3, this.length, false); // Big endian
+                return buffer;
+            }
+            
+            static unpack(data) {
+                const view = new DataView(data);
+                return new HyperTCPHeader(
+                    view.getUint8(0),
+                    view.getUint16(1, false), // Big endian
+                    view.getUint16(3, false)  // Big endian
+                );
+            }
+        }
+
+        // Add log entry
+        function addLogEntry(message, type = 'info') {
+            const now = new Date();
+            const timestamp = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<span class="log-timestamp">${timestamp}</span> <span class="log-${type}">${message}</span>`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Update connection status UI
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            
+            if (connected) {
+                connectionStatusIndicator.className = 'status-indicator status-connected';
+                connectionStatusText.textContent = 'Connected';
+                serverStatusIndicator.className = 'status-indicator status-connected';
+                serverStatusText.textContent = 'Server: Connected';
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'block';
+                deviceStatus.textContent = 'Online';
+                deviceStatus.style.color = '#27ae60';
+            } else {
+                connectionStatusIndicator.className = 'status-indicator status-disconnected';
+                connectionStatusText.textContent = 'Disconnected';
+                serverStatusIndicator.className = 'status-indicator status-disconnected';
+                serverStatusText.textContent = 'Server: Disconnected';
+                connectBtn.style.display = 'block';
+                disconnectBtn.style.display = 'none';
+                deviceStatus.textContent = 'Offline';
+                deviceStatus.style.color = '#e74c3c';
+            }
+        }
+
+        // Connect to HyperTCP server
+        function connectToServer() {
+            const address = serverAddress.value;
+            const port = parseInt(serverPort.value);
+            const token = authToken.value;
+            const id = deviceId.value;
+            
+            if (!address || !port) {
+                addLogEntry('Please enter valid server address and port', 'error');
+                return;
+            }
+            
+            addLogEntry(`Connecting to WebSocket bridge at ${address}:${port} with device ID: ${id}`, 'info');
+            
+            try {
+                // Create WebSocket connection to bridge server
+                const wsUrl = `ws://${address}:${port}`;
+                socket = new WebSocket(wsUrl);
+                
+                socket.binaryType = 'arraybuffer';
+                
+                socket.onopen = function(event) {
+                    addLogEntry('WebSocket connection established', 'success');
+                    performLogin(token, id);
+                };
+                
+                socket.onmessage = function(event) {
+                    handleMessage(event.data);
+                };
+                
+                socket.onclose = function(event) {
+                    addLogEntry('Connection closed', 'warning');
+                    updateConnectionStatus(false);
+                    clearInterval(pingInterval);
+                    
+                    // Attempt to reconnect after 5 seconds
+                    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+                    reconnectTimeout = setTimeout(connectToServer, 5000);
+                };
+                
+                socket.onerror = function(error) {
+                    addLogEntry(`Connection error: ${error.message}`, 'error');
+                };
+            } catch (e) {
+                addLogEntry(`Failed to connect: ${e.message}`, 'error');
+            }
+        }
+
+        // Perform login with device ID
+        function performLogin(token, deviceId) {
+            try {
+                // Create login data with token and device ID
+                const loginData = {
+                    "token": token,
+                    "device_id": deviceId
+                };
+                
+                const jsonData = JSON.stringify(loginData);
+                const payloadBytes = new TextEncoder().encode(jsonData);
+                
+                // Send login command
+                sendCommand(HYPER_TCP_CMD_LOGIN, 1, payloadBytes);
+                addLogEntry('Login command sent', 'info');
+            } catch (e) {
+                addLogEntry(`Login error: ${e.message}`, 'error');
+            }
+        }
+
+        // Handle incoming messages
+        function handleMessage(data) {
+            if (data instanceof ArrayBuffer) {
+                // Binary message (HyperTCP protocol)
+                const headerData = data.slice(0, 5);
+                const header = HyperTCPHeader.unpack(headerData);
+                
+                addLogEntry(`Received message: type=${header.type}, id=${header.msgId}, length=${header.length}`, 'info');
+                
+                // Handle different message types
+                if (header.type === HYPER_TCP_CMD_RESPONSE) {
+                    // Handle response
+                    if (header.msgId === 1) {
+                        // Login response
+                        const statusData = new Uint8Array(data, 5, 1);
+                        const status = statusData[0];
+                        
+                        if (status === HYPER_TCP_STATUS_SUCCESS) {
+                            addLogEntry('Successfully authenticated with server', 'success');
+                            updateConnectionStatus(true);
+                            
+                            // Start ping interval to keep connection alive
+                            pingInterval = setInterval(sendPing, 30000);
+                        } else {
+                            addLogEntry(`Authentication failed with status: ${status}`, 'error');
+                            disconnectFromServer();
+                        }
+                    }
+                } else if (header.type === HYPER_TCP_CMD_JSON_MESSAGE) {
+                    // Handle JSON message
+                    if (header.length > 0) {
+                        const payloadData = data.slice(5, 5 + header.length);
+                        const payloadText = new TextDecoder().decode(payloadData);
+                        
+                        try {
+                            const message = JSON.parse(payloadText);
+                            addLogEntry(`JSON message received: ${payloadText}`, 'info');
+                            
+                            // Process the message
+                            processJsonMessage(message);
+                        } catch (e) {
+                            addLogEntry(`Error parsing JSON message: ${e.message}`, 'error');
+                        }
+                    }
+                } else if (header.type === HYPER_TCP_CMD_BROADCAST) {
+                    // Handle broadcast message
+                    if (header.length > 0) {
+                        const payloadData = data.slice(5, 5 + header.length);
+                        const payloadText = new TextDecoder().decode(payloadData);
+                        
+                        try {
+                            const message = JSON.parse(payloadText);
+                            addLogEntry(`Broadcast message received: ${payloadText}`, 'info');
+                            
+                            // Process the broadcast message
+                            processBroadcastMessage(message);
+                        } catch (e) {
+                            addLogEntry(`Error parsing broadcast message: ${e.message}`, 'error');
+                        }
+                    }
+                } else if (header.type === HYPER_TCP_CMD_PING) {
+                    // Send pong response
+                    sendCommand(HYPER_TCP_CMD_RESPONSE, header.msgId, new Uint8Array(0));
+                    addLogEntry('Ping received, pong sent', 'info');
+                }
+            } else {
+                // Text message (WebSocket control)
+                addLogEntry(`Text message received: ${data}`, 'info');
+            }
+        }
+
+        // Process JSON messages
+        function processJsonMessage(message) {
+            const from = message.from;
+            const payload = message.payload;
+            
+            if (payload) {
+                // Check if this is sensor data
+                if (payload.command === "sensor_data") {
+                    updateSensorData(payload);
+                } else if (payload.command === "heartbeat") {
+                    addLogEntry(`Heartbeat from ${from}: Uptime ${payload.uptime} seconds`, 'info');
+                } else if (payload.command === "connection_status") {
+                    updateDeviceConnection(from, payload.status === "connected");
+                } else if (payload.command === "button_press") {
+                    addLogEntry(`Button press event from ${from}`, 'info');
+                } else if (payload.command === "ack") {
+                    addLogEntry(`Acknowledgment from ${from}: ${payload.message}`, 'success');
+                } else {
+                    addLogEntry(`Message from ${from}: ${JSON.stringify(payload)}`, 'info');
+                }
+            }
+        }
+
+        // Process broadcast messages
+        function processBroadcastMessage(message) {
+            const from = message.from;
+            const payload = message.payload;
+            
+            if (payload) {
+                if (payload.command === "notification") {
+                    addLogEntry(`Notification from ${from}: ${payload.message}`, 'warning');
+                } else if (payload.command === "firmware_update") {
+                    addLogEntry(`Firmware update notification from ${from}: ${payload.version}`, 'info');
+                } else if (payload.event === "deviceConnected") {
+                    addDeviceToList(payload.deviceId, true);
+                    addLogEntry(`Device connected: ${payload.deviceId}`, 'success');
+                } else if (payload.event === "deviceDisconnected") {
+                    addDeviceToList(payload.deviceId, false);
+                    addLogEntry(`Device disconnected: ${payload.deviceId}`, 'warning');
+                } else {
+                    addLogEntry(`Broadcast from ${from}: ${JSON.stringify(payload)}`, 'info');
+                }
+            }
+        }
+
+        // Update sensor data display
+        function updateSensorData(data) {
+            if (data.temperature !== undefined) {
+                temperatureValue.textContent = data.temperature;
+            }
+            if (data.humidity !== undefined) {
+                humidityValue.textContent = data.humidity;
+            }
+            if (data.light !== undefined) {
+                lightValue.textContent = data.light;
+            }
+            addLogEntry(`Sensor data updated: Temp=${data.temperature}°C, Humidity=${data.humidity}%, Light=${data.light}lux`, 'info');
+        }
+
+        // Update device connection status
+        function updateDeviceConnection(deviceId, connected) {
+            const status = connected ? 'Online' : 'Offline';
+            addLogEntry(`Device ${deviceId} is now ${status}`, connected ? 'success' : 'warning');
+        }
+
+        // Add device to the list
+        function addDeviceToList(deviceId, connected) {
+            // For simplicity, we're just showing a static list
+            // In a real implementation, you would dynamically update this
+            if (connectedDevices.size === 0) {
+                devicesContainer.innerHTML = `
+                    <div class="device-item">
+                        <div class="device-info">
+                            <div class="device-name">ESP32 Sensor Device</div>
+                            <div class="device-status">ID: esp32_sensor_001 | Online</div>
+                        </div>
+                        <div class="device-actions">
+                            <span class="status-indicator status-connected"></span>
+                        </div>
+                    </div>
+                `;
+            }
+            connectedDevices.set(deviceId, connected);
+        }
+
+        // Send ping to keep connection alive
+        function sendPing() {
+            sendCommand(HYPER_TCP_CMD_PING, messageCounter++, new Uint8Array(0));
+        }
+
+        // Send control command
+        function sendControlCommand(device, action, value = null) {
+            if (!isConnected) {
+                addLogEntry('Cannot send command: Not connected to server', 'error');
+                return;
+            }
+            
+            const target = targetDevice.value;
+            
+            // Create command payload
+            const payload = {
+                command: "control",
+                device: device,
+                action: action
+            };
+            
+            if (value !== null) {
+                payload.value = value;
+            }
+            
+            // Create message
+            const message = {
+                targetId: target,
+                payload: payload
+            };
+            
+            sendJsonMessage(message);
+            addLogEntry(`Sending control command to ${target}: ${device} ${action}${value ? ' ' + value : ''}`, 'info');
+        }
+
+        // Send JSON message
+        function sendJsonMessage(message) {
+            try {
+                const jsonData = JSON.stringify(message);
+                const payloadBytes = new TextEncoder().encode(jsonData);
+                sendCommand(HYPER_TCP_CMD_JSON_MESSAGE, messageCounter++, payloadBytes);
+            } catch (e) {
+                addLogEntry(`Error sending JSON message: ${e.message}`, 'error');
+            }
+        }
+
+        // Send broadcast message
+        function sendBroadcastMessage(payload) {
+            try {
+                const message = {
+                    targetId: "broadcast",
+                    payload: payload
+                };
+                
+                const jsonData = JSON.stringify(message);
+                const payloadBytes = new TextEncoder().encode(jsonData);
+                sendCommand(HYPER_TCP_CMD_BROADCAST, messageCounter++, payloadBytes);
+                addLogEntry(`Broadcast message sent`, 'info');
+            } catch (e) {
+                addLogEntry(`Error sending broadcast message: ${e.message}`, 'error');
+            }
+        }
+
+        // Send custom command
+        function sendCustomCommand() {
+            if (!isConnected) {
+                addLogEntry('Cannot send command: Not connected to server', 'error');
+                return;
+            }
+            
+            const commandText = customCommand.value.trim();
+            if (!commandText) {
+                addLogEntry('Cannot send empty command', 'warning');
+                return;
+            }
+            
+            try {
+                const payload = JSON.parse(commandText);
+                const target = targetDevice.value;
+                
+                // Create message
+                const message = {
+                    targetId: target,
+                    payload: payload
+                };
+                
+                sendJsonMessage(message);
+                addLogEntry(`Custom command sent to ${target}: ${commandText}`, 'info');
+            } catch (e) {
+                addLogEntry(`Invalid JSON in custom command: ${e.message}`, 'error');
+            }
+        }
+
+        // Send command
+        function sendCommand(cmd, msgId, payloadBytes) {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                addLogEntry('Cannot send command: Not connected to server', 'error');
+                return;
+            }
+            
+            try {
+                // Create header
+                const header = new HyperTCPHeader(cmd, msgId, payloadBytes.length);
+                const headerBuffer = header.pack();
+                
+                // Combine header and payload
+                const fullMessage = new Uint8Array(headerBuffer.byteLength + payloadBytes.length);
+                fullMessage.set(new Uint8Array(headerBuffer), 0);
+                fullMessage.set(payloadBytes, headerBuffer.byteLength);
+                
+                // Send message
+                socket.send(fullMessage.buffer);
+            } catch (e) {
+                addLogEntry(`Error sending command: ${e.message}`, 'error');
+            }
+        }
+
+        // Disconnect from server
+        function disconnectFromServer() {
+            addLogEntry('Disconnecting from server...', 'info');
+            
+            if (pingInterval) {
+                clearInterval(pingInterval);
+                pingInterval = null;
+            }
+            
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = null;
+            }
+            
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+            
+            updateConnectionStatus(false);
+            addLogEntry('Disconnected from server', 'info');
+        }
+
+        // Event Listeners
+        connectBtn.addEventListener('click', connectToServer);
+        
+        disconnectBtn.addEventListener('click', disconnectFromServer);
+        
+        clearLogBtn.addEventListener('click', () => {
+            logContainer.innerHTML = '';
+            addLogEntry('Log cleared', 'info');
+        });
+        
+        ledOnBtn.addEventListener('click', () => {
+            sendControlCommand('led', 'on');
+        });
+        
+        ledOffBtn.addEventListener('click', () => {
+            sendControlCommand('led', 'off');
+        });
+        
+        ledToggleBtn.addEventListener('click', () => {
+            sendControlCommand('led', 'toggle');
+        });
+        
+        ledBlinkBtn.addEventListener('click', () => {
+            const count = parseInt(blinkCount.value) || 3;
+            sendControlCommand('led', 'blink', count);
+        });
+        
+        sendCommandBtn.addEventListener('click', sendCustomCommand);
+        
+        // Initialize
+        addLogEntry('HyperTCP Web Interface initialized', 'info');
+        updateConnectionStatus(false);
+        
+        // Add a sample device to the list
+        addDeviceToList('esp32_sensor_001', false);
+    </script>
+</body>
+</html>
